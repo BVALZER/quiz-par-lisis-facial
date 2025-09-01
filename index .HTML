@@ -1,0 +1,1215 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz Interactivo: Parálisis Facial</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #e8f4fd 0%, #f0e6ff 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #a8e6cf 0%, #88d8c0 100%);
+            border-radius: 20px;
+            padding: 30px;
+            text-align: center;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+
+        .header h1 {
+            color: #2c3e50;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+
+        .header p {
+            color: #34495e;
+            font-size: 1.1em;
+            opacity: 0.8;
+        }
+
+        .progress-container {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.08);
+        }
+
+        .progress-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .question-counter {
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        .category-tag {
+            background: linear-gradient(45deg, #ffd3a5 0%, #fd9853 100%);
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.9em;
+            font-weight: 600;
+            color: white;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 12px;
+            background: #ecf0f1;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #a8e6cf 0%, #88d8c0 100%);
+            border-radius: 10px;
+            transition: width 0.5s ease;
+            width: 0%;
+        }
+
+        .question-card {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 20px;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+            border-left: 5px solid #a8e6cf;
+        }
+
+        .question-title {
+            font-size: 1.4em;
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 25px;
+            line-height: 1.6;
+        }
+
+        .options {
+            display: grid;
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+
+        .option {
+            background: linear-gradient(135deg, #f8f9ff 0%, #e8f4fd 100%);
+            border: 2px solid #e0e6ed;
+            border-radius: 15px;
+            padding: 18px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+        }
+
+        .option:hover {
+            background: linear-gradient(135deg, #e8f4fd 0%, #d0e8ff 100%);
+            border-color: #a8e6cf;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .option.selected {
+            background: linear-gradient(135deg, #a8e6cf 0%, #88d8c0 100%);
+            border-color: #88d8c0;
+            color: white;
+        }
+
+        .option.correct {
+            background: linear-gradient(135deg, #90ee90 0%, #32cd32 100%);
+            border-color: #32cd32;
+            color: white;
+        }
+
+        .option.incorrect {
+            background: linear-gradient(135deg, #ffb3ba 0%, #ff7f7f 100%);
+            border-color: #ff7f7f;
+            color: white;
+        }
+
+        .option-label {
+            background: rgba(255,255,255,0.9);
+            color: #2c3e50;
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            margin-right: 15px;
+            flex-shrink: 0;
+        }
+
+        .option.selected .option-label,
+        .option.correct .option-label,
+        .option.incorrect .option-label {
+            background: rgba(255,255,255,1);
+            color: #2c3e50;
+        }
+
+        .controls {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 1em;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-hint {
+            background: linear-gradient(135deg, #ffd3a5 0%, #fd9853 100%);
+        }
+
+        .btn-next {
+            background: linear-gradient(135deg, #a8e6cf 0%, #88d8c0 100%);
+        }
+
+        .btn-prev {
+            background: linear-gradient(135deg, #d3d3d3 0%, #b0b0b0 100%);
+        }
+
+        .btn-finish {
+            background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%);
+        }
+
+        .hint-card, .explanation-card {
+            background: linear-gradient(135deg, #fff2e6 0%, #ffe0b3 100%);
+            border-radius: 15px;
+            padding: 20px;
+            margin-top: 20px;
+            border-left: 4px solid #fd9853;
+            display: none;
+        }
+
+        .explanation-card {
+            background: linear-gradient(135deg, #e6ffe6 0%, #b3ffb3 100%);
+            border-left-color: #32cd32;
+        }
+
+        .hint-title, .explanation-title {
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .results-card {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            text-align: center;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+            display: none;
+        }
+
+        .score-circle {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #a8e6cf 0%, #88d8c0 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 20px auto;
+            color: white;
+            font-size: 2em;
+            font-weight: bold;
+        }
+
+        .feedback {
+            font-size: 1.2em;
+            color: #2c3e50;
+            margin: 20px 0;
+        }
+
+        .restart-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 1.1em;
+            font-weight: 600;
+            margin-top: 20px;
+        }
+
+        .credits {
+            background: linear-gradient(135deg, #f0f0f0 0%, #e8e8e8 100%);
+            border-radius: 15px;
+            padding: 20px;
+            margin-top: 30px;
+            text-align: center;
+            border: 2px solid #d0d0d0;
+        }
+
+        .credits h3 {
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+
+        .credits p {
+            color: #555;
+            font-style: italic;
+        }
+
+        .status-indicators {
+            display: flex;
+            justify-content: center;
+            gap: 5px;
+            margin-top: 15px;
+            flex-wrap: wrap;
+        }
+
+        .status-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #ecf0f1;
+            transition: all 0.3s ease;
+        }
+
+        .status-dot.current {
+            background: #3498db;
+            transform: scale(1.3);
+        }
+
+        .status-dot.correct {
+            background: #27ae60;
+        }
+
+        .status-dot.incorrect {
+            background: #e74c3c;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 15px;
+            }
+            
+            .header h1 {
+                font-size: 2em;
+            }
+            
+            .question-card {
+                padding: 20px;
+            }
+            
+            .controls {
+                justify-content: stretch;
+            }
+            
+            .btn {
+                flex: 1;
+                min-width: 120px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🧠 Quiz: Parálisis Facial</h1>
+            <p>Aprende sobre causas, síntomas y factores de riesgo</p>
+        </div>
+
+        <div id="quiz-container">
+            <div class="progress-container">
+                <div class="progress-info">
+                    <span class="question-counter">Pregunta <span id="current-q">1</span> de 40</span>
+                    <span class="category-tag" id="category-tag">Conceptos Básicos</span>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progress-fill"></div>
+                </div>
+                <div class="status-indicators" id="status-indicators"></div>
+            </div>
+
+            <div class="question-card">
+                <div class="question-title" id="question-title"></div>
+                <div class="options" id="options-container"></div>
+                
+                <div class="hint-card" id="hint-card">
+                    <div class="hint-title">💡 Pista</div>
+                    <div id="hint-text"></div>
+                </div>
+
+                <div class="explanation-card" id="explanation-card">
+                    <div class="explanation-title">✅ Explicación</div>
+                    <div id="explanation-text"></div>
+                </div>
+            </div>
+
+            <div class="controls">
+                <button class="btn btn-prev" id="prev-btn" onclick="prevQuestion()">⬅ Anterior</button>
+                <button class="btn btn-hint" id="hint-btn" onclick="showHint()">💡 Ver Pista</button>
+                <button class="btn btn-next" id="next-btn" onclick="nextQuestion()">Siguiente ➡</button>
+                <button class="btn btn-finish" id="finish-btn" onclick="finishQuiz()" style="display: none;">🏁 Finalizar</button>
+            </div>
+        </div>
+
+        <div class="results-card" id="results-card">
+            <h2>¡Quiz Completado! 🎉</h2>
+            <div class="score-circle" id="score-circle">0%</div>
+            <div class="feedback" id="feedback-text"></div>
+            <button class="restart-btn" onclick="restartQuiz()">🔄 Reiniciar Quiz</button>
+        </div>
+
+        <div class="credits">
+            <h3>📚 Créditos</h3>
+            <p>Investigación realizada por: <strong>Bernardo Zermeño M.</strong></p>
+            <p><em>"Lo vi, Lo leí, Lo analicé y lo aprendí"</em></p>
+            <p>Aprendiz y entusiasta de la tecnología y la optimización del aprendizaje humano</p>
+        </div>
+    </div>
+
+    <script>
+        const questions = [
+            // Conceptos Básicos (8 preguntas)
+            {
+                category: "Conceptos Básicos",
+                question: "¿Qué es la parálisis facial?",
+                options: [
+                    "Una lesión en los músculos del cuello",
+                    "La pérdida de función del nervio facial que controla los músculos de la cara",
+                    "Una infección en los oídos",
+                    "Un trastorno de la vista"
+                ],
+                correct: 1,
+                hint: "Piensa en el nervio que controla los movimientos de la cara",
+                explanation: "La parálisis facial es la pérdida de función del nervio facial (VII par craneal) que controla los músculos de la expresión facial, causando debilidad o pérdida completa del movimiento en un lado de la cara."
+            },
+            {
+                category: "Conceptos Básicos",
+                question: "¿Cuál es el tipo más común de parálisis facial?",
+                options: [
+                    "Parálisis de Bell",
+                    "Parálisis traumática",
+                    "Parálisis congénita",
+                    "Parálisis por tumor"
+                ],
+                correct: 0,
+                hint: "Lleva el nombre de un médico británico del siglo XIX",
+                explanation: "La parálisis de Bell es el tipo más común de parálisis facial, representando aproximadamente el 70-75% de todos los casos. Su causa exacta es desconocida, pero se cree que está relacionada con inflamación viral."
+            },
+            {
+                category: "Conceptos Básicos",
+                question: "¿Qué porcentaje de la población puede verse afectada por parálisis facial a lo largo de su vida?",
+                options: [
+                    "0.1-0.5%",
+                    "1-2%",
+                    "3-5%",
+                    "10-15%"
+                ],
+                correct: 1,
+                hint: "Es más común de lo que muchos piensan, pero no extremadamente frecuente",
+                explanation: "Se estima que entre el 1-2% de la población experimentará parálisis facial en algún momento de su vida, siendo la parálisis de Bell la forma más común."
+            },
+            {
+                category: "Conceptos Básicos",
+                question: "¿En qué lado de la cara se presenta más comúnmente la parálisis facial?",
+                options: [
+                    "Siempre en el lado izquierdo",
+                    "Siempre en el lado derecho",
+                    "Puede afectar cualquier lado por igual",
+                    "Solo afecta ambos lados simultáneamente"
+                ],
+                correct: 2,
+                hint: "No hay preferencia lateral en la mayoría de los casos",
+                explanation: "La parálisis facial puede afectar cualquier lado de la cara con igual frecuencia. No existe una predilección significativa por el lado izquierdo o derecho."
+            },
+            {
+                category: "Conceptos Básicos",
+                question: "¿Cuál es la diferencia entre parálisis facial central y periférica?",
+                options: [
+                    "No hay diferencia, son lo mismo",
+                    "La central afecta solo la frente, la periférica todo el lado",
+                    "La central preserva la frente, la periférica afecta toda la cara",
+                    "La central es más grave que la periférica"
+                ],
+                correct: 2,
+                hint: "Piensa en dónde está localizada la lesión: en el cerebro o en el nervio",
+                explanation: "En la parálisis facial central (lesión cerebral), la frente se preserva debido a la inervación bilateral. En la periférica (lesión del nervio facial), se afecta todo el lado de la cara incluyendo la frente."
+            },
+            {
+                category: "Conceptos Básicos",
+                question: "¿Cuál es el nervio craneal involucrado en la parálisis facial?",
+                options: [
+                    "V par craneal (trigémino)",
+                    "VI par craneal (abducens)",
+                    "VII par craneal (facial)",
+                    "VIII par craneal (vestibulococlear)"
+                ],
+                correct: 2,
+                hint: "Es el séptimo par craneal",
+                explanation: "El VII par craneal o nervio facial es el responsable de controlar los músculos de la expresión facial. Su lesión causa la parálisis facial."
+            },
+            {
+                category: "Conceptos Básicos",
+                question: "¿Qué significa el término 'parálisis facial idiopática'?",
+                options: [
+                    "Parálisis causada por trauma",
+                    "Parálisis de causa desconocida",
+                    "Parálisis congénita",
+                    "Parálisis por infección"
+                ],
+                correct: 1,
+                hint: "'Idiopática' es un término médico que significa algo específico sobre la causa",
+                explanation: "Idiopática significa de causa desconocida. La parálisis de Bell es considerada idiopática porque su causa exacta no se conoce completamente."
+            },
+            {
+                category: "Conceptos Básicos",
+                question: "¿Cuándo se considera que una parálisis facial es 'completa'?",
+                options: [
+                    "Cuando afecta ambos lados de la cara",
+                    "Cuando no hay movimiento voluntario en el lado afectado",
+                    "Cuando dura más de 6 meses",
+                    "Cuando afecta también el cuello"
+                ],
+                correct: 1,
+                hint: "Se refiere al grado de pérdida de función muscular",
+                explanation: "Una parálisis facial completa significa que no hay movimiento voluntario detectable en los músculos del lado afectado de la cara."
+            },
+
+            // Síntomas y Signos (10 preguntas)
+            {
+                category: "Síntomas y Signos",
+                question: "¿Cuál es el síntoma más característico de la parálisis facial?",
+                options: [
+                    "Dolor de cabeza intenso",
+                    "Asimetría facial con caída de la comisura labial",
+                    "Pérdida de la audición",
+                    "Visión borrosa"
+                ],
+                correct: 1,
+                hint: "Observa cómo se ve la cara cuando la persona intenta sonreír",
+                explanation: "La asimetría facial es el signo más característico, especialmente notable cuando el paciente intenta sonreír, ya que la comisura labial del lado afectado no se eleva."
+            },
+            {
+                category: "Síntomas y Signos",
+                question: "¿Qué sucede con el párpado en la parálisis facial?",
+                options: [
+                    "Se cierra completamente y no puede abrirse",
+                    "No puede cerrarse completamente",
+                    "Tiembla constantemente",
+                    "No se ve afectado"
+                ],
+                correct: 1,
+                hint: "Piensa en la dificultad para proteger el ojo",
+                explanation: "En la parálisis facial, el párpado no puede cerrarse completamente (lagoftalmos) debido a la debilidad del músculo orbicular del ojo, lo que puede causar sequedad ocular."
+            },
+            {
+                category: "Síntomas y Signos",
+                question: "¿Qué problema puede presentarse al beber líquidos?",
+                options: [
+                    "Dificultad para tragar",
+                    "Escape de líquidos por la comisura labial afectada",
+                    "Sabor metálico",
+                    "Náuseas constantes"
+                ],
+                correct: 1,
+                hint: "La debilidad muscular afecta la capacidad de sellar los labios",
+                explanation: "La debilidad de los músculos peribucales impide el sellado adecuado de los labios, causando escape de líquidos por la comisura del lado afectado."
+            },
+            {
+                category: "Síntomas y Signos",
+                question: "¿Cómo se ve afectada la sonrisa en la parálisis facial?",
+                options: [
+                    "Es completamente normal",
+                    "Es asimétrica, jalándose hacia el lado sano",
+                    "Es más amplia que antes",
+                    "Causa dolor intenso"
+                ],
+                correct: 1,
+                hint: "El lado sano compensa la debilidad del lado afectado",
+                explanation: "La sonrisa se vuelve asimétrica porque el lado sano eleva normalmente la comisura labial mientras que el lado afectado permanece inmóvil, creando una desviación hacia el lado sano."
+            },
+            {
+                category: "Síntomas y Signos",
+                question: "¿Qué signo se observa al pedirle al paciente que cierre fuertemente los ojos?",
+                options: [
+                    "Ambos ojos se cierran normalmente",
+                    "El ojo del lado afectado no puede cerrarse o el globo ocular se desvía hacia arriba",
+                    "Solo el ojo sano se cierra",
+                    "Ambos ojos tiemblan"
+                ],
+                correct: 1,
+                hint: "Es un signo neurológico específico que lleva el nombre de un médico",
+                explanation: "Se observa el signo de Bell: imposibilidad de cerrar el ojo del lado afectado y desviación del globo ocular hacia arriba y afuera al intentar el cierre forzado."
+            },
+            {
+                category: "Síntomas y Signos",
+                question: "¿Qué puede suceder con el habla en la parálisis facial?",
+                options: [
+                    "Se pierde completamente",
+                    "Puede volverse ligeramente disártrica, especialmente para ciertos sonidos",
+                    "Se vuelve más clara que antes",
+                    "No se afecta en absoluto"
+                ],
+                correct: 1,
+                hint: "Algunos sonidos requieren movimiento específico de los labios",
+                explanation: "El habla puede volverse disártrica, especialmente para sonidos bilabiales (p, b, m) y labiodentales (f, v) que requieren movimiento y sellado labial adecuado."
+            },
+            {
+                category: "Síntomas y Signos",
+                question: "¿Cuál es un síntoma sensorial que puede acompañar a la parálisis facial?",
+                options: [
+                    "Pérdida del gusto en los dos tercios anteriores de la lengua",
+                    "Pérdida del olfato",
+                    "Visión doble",
+                    "Zumbido en ambos oídos"
+                ],
+                correct: 0,
+                hint: "El nervio facial también tiene fibras sensoriales para el gusto",
+                explanation: "El nervio facial transporta fibras gustativas para los dos tercios anteriores de la lengua a través de la cuerda del tímpano, por lo que puede haber pérdida del gusto (ageusia o hipogeusia)."
+            },
+            {
+                category: "Síntomas y Signos",
+                question: "¿Qué síntoma auditivo puede presentarse?",
+                options: [
+                    "Sordera completa",
+                    "Hiperacusia (sensibilidad aumentada al sonido)",
+                    "Pérdida selectiva de frecuencias agudas",
+                    "No hay síntomas auditivos"
+                ],
+                correct: 1,
+                hint: "Un músculo del oído medio está inervado por el nervio facial",
+                explanation: "La hiperacusia ocurre por parálisis del músculo estapedio, que está inervado por el nervio facial y normalmente amortigua los sonidos fuertes."
+            },
+            {
+                category: "Síntomas y Signos",
+                question: "¿Cómo se ve afectada la expresión de arrugar la frente?",
+                options: [
+                    "No se afecta nunca",
+                    "En la parálisis periférica no se puede arrugar la frente del lado afectado",
+                    "Solo se afecta en casos muy graves",
+                    "Se arruga más que el lado normal"
+                ],
+                correct: 1,
+                hint: "Esto ayuda a diferenciar entre parálisis central y periférica",
+                explanation: "En la parálisis facial periférica, la frente del lado afectado no puede arrugarse porque todos los músculos faciales del lado están afectados, incluyendo el músculo frontal."
+            },
+            {
+                category: "Síntomas y Signos",
+                question: "¿Qué problema puede presentarse con la producción de lágrimas?",
+                options: [
+                    "Aumento excesivo de lágrimas",
+                    "Disminución de la producción lagrimal",
+                    "Lágrimas de color diferente",
+                    "No hay cambios en las lágrimas"
+                ],
+                correct: 1,
+                hint: "El nervio facial también inerva las glándulas lacrimales",
+                explanation: "Puede haber disminución en la producción de lágrimas (hipoacrima) porque el nervio facial inerva la glándula lagrimal a través de fibras parasimpáticas."
+            },
+
+            // Causas y Factores de Riesgo (8 preguntas)
+            {
+                category: "Causas y Factores",
+                question: "¿Cuál es la causa más común de parálisis facial aguda?",
+                options: [
+                    "Accidente cerebrovascular",
+                    "Parálisis de Bell (idiopática)",
+                    "Tumor cerebral",
+                    "Infección bacteriana"
+                ],
+                correct: 1,
+                hint: "Recuerda que es de causa desconocida y es la más frecuente",
+                explanation: "La parálisis de Bell representa el 60-75% de todos los casos de parálisis facial periférica aguda. Su causa exacta es desconocida, aunque se sospecha origen viral."
+            },
+            {
+                category: "Causas y Factores",
+                question: "¿Qué virus se ha asociado más frecuentemente con la parálisis de Bell?",
+                options: [
+                    "Virus de Epstein-Barr",
+                    "Virus del herpes simple tipo 1",
+                    "Citomegalovirus",
+                    "Virus de la influenza"
+                ],
+                correct: 1,
+                hint: "Es el mismo virus que causa herpes labial",
+                explanation: "El virus del herpes simple tipo 1 (HSV-1) es el que más se ha asociado con la parálisis de Bell, aunque la relación causal no está completamente establecida."
+            },
+            {
+                category: "Causas y Factores",
+                question: "¿Qué condición infecciosa puede causar parálisis facial bilateral?",
+                options: [
+                    "Gripe común",
+                    "Enfermedad de Lyme",
+                    "Faringitis estreptocócica",
+                    "Gastroenteritis"
+                ],
+                correct: 1,
+                hint: "Es una enfermedad transmitida por garrapatas",
+                explanation: "La enfermedad de Lyme (causada por Borrelia burgdorferi) puede causar parálisis facial bilateral en su fase de diseminación temprana."
+            },
+            {
+                category: "Causas y Factores",
+                question: "¿Cuál es una causa traumática común de parálisis facial?",
+                options: [
+                    "Fractura del hueso temporal",
+                    "Fractura de nariz",
+                    "Luxación de mandíbula",
+                    "Fractura de clavícula"
+                ],
+                correct: 0,
+                hint: "Piensa en el hueso donde pasa el nervio facial por un canal",
+                explanation: "La fractura del hueso temporal puede lesionar el nervio facial en su trayecto por el canal de Falopio, causando parálisis facial traumática."
+            },
+            {
+                category: "Causas y Factores",
+                question: "¿Qué tumor benigno es una causa conocida de parálisis facial progresiva?",
+                options: [
+                    "Meningioma",
+                    "Schwannoma del nervio facial",
+                    "Adenoma hipofisario",
+                    "Craneofaringioma"
+                ],
+                correct: 1,
+                hint: "Es un tumor que crece específicamente en el nervio facial",
+                explanation: "El schwannoma del nervio facial es un tumor benigno que crece en la vaina del nervio facial, causando parálisis progresiva y pérdida auditiva."
+            },
+            {
+                category: "Causas y Factores",
+                question: "¿Cuál de estos medicamentos puede causar parálisis facial como efecto secundario?",
+                options: [
+                    "Aspirina",
+                    "Gentamicina (aminoglucósido)",
+                    "Ibuprofeno",
+                    "Paracetamol"
+                ],
+                correct: 1,
+                hint: "Es un antibiótico que puede ser tóxico para los nervios",
+                explanation: "Los aminoglucósidos como la gentamicina pueden causar neurotoxicidad, incluyendo parálisis facial, especialmente con uso prolongado o dosis altas."
+            },
+            {
+                category: "Causas y Factores",
+                question: "¿Qué síndrome genético se asocia con parálisis facial recurrente?",
+                options: [
+                    "Síndrome de Down",
+                    "Síndrome de Melkersson-Rosenthal",
+                    "Síndrome de Turner",
+                    "Síndrome de Marfan"
+                ],
+                correct: 1,
+                hint: "Es una tríada que incluye parálisis facial, edema labial y lengua plegada",
+                explanation: "El síndrome de Melkersson-Rosenthal se caracteriza por parálisis facial recurrente, edema labial granulomatoso y lengua plegada (lingua plicata)."
+            },
+            {
+                category: "Causas y Factores",
+                question: "¿Qué procedimiento quirúrgico puede resultar en parálisis facial iatrogénica?",
+                options: [
+                    "Apendicectomía",
+                    "Cirugía de oído (mastoidectomía)",
+                    "Cirugía de corazón",
+                    "Cirugía de rodilla"
+                ],
+                correct: 1,
+                hint: "Piensa en cirugías cerca del trayecto del nervio facial",
+                explanation: "La cirugía de oído, especialmente la mastoidectomía, puede lesionar inadvertidamente el nervio facial debido a su proximidad anatómica en el hueso temporal."
+            },
+
+            // Relación con Estilo de Vida (8 preguntas)
+            {
+                category: "Estilo de Vida",
+                question: "¿Cómo puede el estrés crónico influir en el desarrollo de parálisis facial?",
+                options: [
+                    "No hay relación alguna",
+                    "Puede suprimir el sistema inmunológico y facilitar reactivación viral",
+                    "Solo afecta en personas mayores de 60 años",
+                    "Causa directamente la parálisis sin otros factores"
+                ],
+                correct: 1,
+                hint: "El estrés afecta nuestras defensas naturales",
+                explanation: "El estrés crónico puede suprimir el sistema inmunológico, facilitando la reactivación de virus latentes como el HSV-1, que se ha asociado con la parálisis de Bell."
+            },
+            {
+                category: "Estilo de Vida",
+                question: "¿Qué relación existe entre el sedentarismo y el riesgo de parálisis facial?",
+                options: [
+                    "El sedentarismo aumenta directamente el riesgo",
+                    "No hay relación directa, pero puede empeorar factores de riesgo como diabetes e hipertensión",
+                    "Solo afecta a deportistas profesionales",
+                    "Protege contra la parálisis facial"
+                ],
+                correct: 1,
+                hint: "El sedentarismo afecta indirectamente a través de otras condiciones",
+                explanation: "Aunque no hay relación directa, el sedentarismo puede empeorar factores de riesgo como diabetes, hipertensión y obesidad, que sí se asocian con mayor riesgo de parálisis facial."
+            },
+            {
+                category: "Estilo de Vida",
+                question: "¿Cómo afecta la obesidad al riesgo de desarrollar parálisis facial?",
+                options: [
+                    "Disminuye significativamente el riesgo",
+                    "Aumenta el riesgo debido a inflamación sistémica y comorbilidades",
+                    "Solo afecta en obesidad mórbida",
+                    "No tiene ninguna influencia"
+                ],
+                correct: 1,
+                hint: "La obesidad causa inflamación y se asocia con diabetes",
+                explanation: "La obesidad aumenta el riesgo através de inflamación sistémica crónica, mayor prevalencia de diabetes mellitus y síndrome metabólico, todos factores de riesgo para parálisis facial."
+            },
+            {
+                category: "Estilo de Vida",
+                question: "¿Qué efecto puede tener la falta de sueño en el riesgo de parálisis facial?",
+                options: [
+                    "Mejora la función del nervio facial",
+                    "Puede debilitar el sistema inmunológico y aumentar la susceptibilidad",
+                    "Solo afecta a personas con insomnio crónico",
+                    "No tiene ningún efecto"
+                ],
+                correct: 1,
+                hint: "El sueño es crucial para el sistema inmunológico",
+                explanation: "La privación crónica del sueño debilita el sistema inmunológico, aumentando la susceptibilidad a infecciones virales que pueden desencadenar parálisis facial."
+            },
+            {
+                category: "Estilo de Vida",
+                question: "¿Cómo puede la exposición al frío extremo relacionarse con la parálisis facial?",
+                options: [
+                    "No hay relación",
+                    "Puede desencadenar parálisis de Bell en personas susceptibles",
+                    "Solo afecta en temperaturas bajo cero",
+                    "Protege contra la parálisis"
+                ],
+                correct: 1,
+                hint: "El frío puede ser un factor desencadenante en algunos casos",
+                explanation: "La exposición al frío extremo puede actuar como factor desencadenante de parálisis de Bell en personas genéticamente susceptibles, posiblemente por alteración de la microcirculación del nervio."
+            },
+            {
+                category: "Estilo de Vida",
+                question: "¿Qué papel juega el tabaquismo en el riesgo de parálisis facial?",
+                options: [
+                    "Disminuye el riesgo significativamente",
+                    "Puede aumentar el riesgo por alteración de la microcirculación",
+                    "Solo afecta a fumadores de más de 20 cigarrillos diarios",
+                    "No tiene relación alguna"
+                ],
+                correct: 1,
+                hint: "El tabaco afecta la circulación sanguínea",
+                explanation: "El tabaquismo puede aumentar el riesgo de parálisis facial al alterar la microcirculación del nervio facial y promover procesos inflamatorios."
+            },
+            {
+                category: "Estilo de Vida",
+                question: "¿Cómo puede la actividad física regular influir en la prevención de parálisis facial?",
+                options: [
+                    "No tiene ningún efecto preventivo",
+                    "Puede tener efecto protector al mejorar la circulación y el sistema inmunológico",
+                    "Solo protege si se practica más de 5 horas diarias",
+                    "Aumenta el riesgo de parálisis"
+                ],
+                correct: 1,
+                hint: "El ejercicio tiene efectos positivos en la circulación y inmunidad",
+                explanation: "La actividad física regular mejora la circulación sanguínea, fortalece el sistema inmunológico y reduce la inflamación sistémica, lo que puede tener un efecto protector."
+            },
+            {
+                category: "Estilo de Vida",
+                question: "¿Qué efecto puede tener el bajo peso extremo en el riesgo de parálisis facial?",
+                options: [
+                    "Protege completamente contra la parálisis",
+                    "Puede aumentar el riesgo por desnutrición e inmunosupresión",
+                    "Solo afecta en casos de anorexia nerviosa",
+                    "No tiene ningún efecto"
+                ],
+                correct: 1,
+                hint: "La desnutrición afecta el sistema inmunológico",
+                explanation: "El bajo peso extremo puede asociarse con desnutrición e inmunosupresión, aumentando la susceptibilidad a infecciones virales que pueden desencadenar parálisis facial."
+            },
+
+            // Grupos Etarios y Factores Específicos (6 preguntas)
+            {
+                category: "Factores Específicos",
+                question: "¿En qué grupo etario es más común la parálisis de Bell?",
+                options: [
+                    "Niños menores de 10 años",
+                    "Adultos entre 15-45 años",
+                    "Adultos mayores de 65 años",
+                    "Afecta por igual a todas las edades"
+                ],
+                correct: 1,
+                hint: "Piensa en el grupo de edad más activo laboralmente",
+                explanation: "La parálisis de Bell es más común en adultos de 15-45 años, con un pico de incidencia alrededor de los 40 años. La incidencia es menor en niños y ancianos."
+            },
+            {
+                category: "Factores Específicos",
+                question: "¿Cómo afecta el embarazo al riesgo de parálisis facial?",
+                options: [
+                    "Disminuye significativamente el riesgo",
+                    "Aumenta el riesgo, especialmente en el tercer trimestre",
+                    "Solo afecta en embarazos múltiples",
+                    "No hay diferencia con mujeres no embarazadas"
+                ],
+                correct: 1,
+                hint: "Los cambios inmunológicos del embarazo pueden influir",
+                explanation: "El embarazo aumenta 3-4 veces el riesgo de parálisis de Bell, especialmente en el tercer trimestre, debido a cambios inmunológicos, edema y alteraciones hormonales."
+            },
+            {
+                category: "Factores Específicos",
+                question: "¿Qué relación existe entre diabetes mellitus y parálisis facial?",
+                options: [
+                    "Los diabéticos tienen menor riesgo",
+                    "Los diabéticos tienen 4-5 veces mayor riesgo de desarrollar parálisis facial",
+                    "Solo afecta a diabéticos tipo 1",
+                    "No hay relación establecida"
+                ],
+                correct: 1,
+                hint: "La diabetes afecta los nervios y la circulación",
+                explanation: "Los pacientes diabéticos tienen 4-5 veces mayor riesgo de desarrollar parálisis facial debido a neuropatía diabética, alteraciones microvasculares y mayor susceptibilidad a infecciones."
+            },
+            {
+                category: "Factores Específicos",
+                question: "¿Cómo se relacionan los niveles elevados de colesterol con la parálisis facial?",
+                options: [
+                    "No existe relación alguna",
+                    "Pueden contribuir por alteración de la microcirculación del nervio",
+                    "Solo en casos de hipercolesterolemia familiar",
+                    "Los niveles altos protegen contra la parálisis"
+                ],
+                correct: 1,
+                hint: "El colesterol alto afecta la circulación de pequeños vasos",
+                explanation: "Los niveles elevados de colesterol pueden alterar la microcirculación del nervio facial, contribuyendo potencialmente al desarrollo de parálisis facial por isquemia neural."
+            },
+            {
+                category: "Factores Específicos",
+                question: "¿Qué papel juegan los triglicéridos elevados?",
+                options: [
+                    "Protegen contra la parálisis facial",
+                    "Pueden aumentar el riesgo como parte del síndrome metabólico",
+                    "Solo afectan si están extremadamente elevados (>1000 mg/dl)",
+                    "No tienen ningún efecto"
+                ],
+                correct: 1,
+                hint: "Forman parte del síndrome metabólico junto con otros factores",
+                explanation: "Los triglicéridos elevados, como parte del síndrome metabólico, pueden contribuir a inflamación sistémica y alteraciones microvasculares que aumentan el riesgo de parálisis facial."
+            },
+            {
+                category: "Factores Específicos",
+                question: "¿Cómo influye la hipertensión arterial en el riesgo de parálisis facial?",
+                options: [
+                    "Disminuye el riesgo al mejorar la perfusión",
+                    "Aumenta el riesgo por alteraciones en la microcirculación neural",
+                    "Solo afecta en crisis hipertensivas",
+                    "No tiene influencia alguna"
+                ],
+                correct: 1,
+                hint: "La hipertensión daña los pequeños vasos sanguíneos",
+                explanation: "La hipertensión arterial puede alterar la microcirculación del nervio facial, aumentando el riesgo de isquemia neural y contribuyendo al desarrollo de parálisis facial."
+            }
+        ];
+
+        let currentQuestion = 0;
+        let selectedAnswers = new Array(questions.length).fill(null);
+        let hintsUsed = new Array(questions.length).fill(false);
+        let quizCompleted = false;
+
+        function initQuiz() {
+            createStatusIndicators();
+            displayQuestion();
+            updateProgress();
+            updateNavigation();
+        }
+
+        function createStatusIndicators() {
+            const container = document.getElementById('status-indicators');
+            container.innerHTML = '';
+            for (let i = 0; i < questions.length; i++) {
+                const dot = document.createElement('div');
+                dot.className = 'status-dot';
+                if (i === 0) dot.classList.add('current');
+                container.appendChild(dot);
+            }
+        }
+
+        function displayQuestion() {
+            const question = questions[currentQuestion];
+            
+            document.getElementById('current-q').textContent = currentQuestion + 1;
+            document.getElementById('category-tag').textContent = question.category;
+            document.getElementById('question-title').textContent = question.question;
+            
+            const optionsContainer = document.getElementById('options-container');
+            optionsContainer.innerHTML = '';
+            
+            question.options.forEach((option, index) => {
+                const optionElement = document.createElement('div');
+                optionElement.className = 'option';
+                optionElement.onclick = () => selectAnswer(index);
+                
+                optionElement.innerHTML = `
+                    <div class="option-label">${String.fromCharCode(65 + index)}</div>
+                    <div>${option}</div>
+                `;
+                
+                if (selectedAnswers[currentQuestion] === index) {
+                    optionElement.classList.add('selected');
+                }
+                
+                optionsContainer.appendChild(optionElement);
+            });
+
+            // Hide hint and explanation cards
+            document.getElementById('hint-card').style.display = 'none';
+            document.getElementById('explanation-card').style.display = 'none';
+            
+            // Reset hint button
+            const hintBtn = document.getElementById('hint-btn');
+            if (hintsUsed[currentQuestion]) {
+                hintBtn.textContent = '💡 Pista Vista';
+                hintBtn.style.opacity = '0.7';
+            } else {
+                hintBtn.textContent = '💡 Ver Pista';
+                hintBtn.style.opacity = '1';
+            }
+        }
+
+        function selectAnswer(optionIndex) {
+            selectedAnswers[currentQuestion] = optionIndex;
+            
+            // Update visual selection
+            const options = document.querySelectorAll('.option');
+            options.forEach((option, index) => {
+                option.classList.remove('selected', 'correct', 'incorrect');
+                if (index === optionIndex) {
+                    option.classList.add('selected');
+                }
+            });
+
+            // Show explanation immediately
+            showExplanation();
+            
+            // Update status dot
+            updateStatusDots();
+            updateNavigation();
+        }
+
+        function showHint() {
+            const question = questions[currentQuestion];
+            const hintCard = document.getElementById('hint-card');
+            document.getElementById('hint-text').textContent = question.hint;
+            hintCard.style.display = 'block';
+            
+            hintsUsed[currentQuestion] = true;
+            const hintBtn = document.getElementById('hint-btn');
+            hintBtn.textContent = '💡 Pista Vista';
+            hintBtn.style.opacity = '0.7';
+        }
+
+        function showExplanation() {
+            if (selectedAnswers[currentQuestion] === null) return;
+            
+            const question = questions[currentQuestion];
+            const explanationCard = document.getElementById('explanation-card');
+            document.getElementById('explanation-text').textContent = question.explanation;
+            explanationCard.style.display = 'block';
+            
+            // Color code the options
+            const options = document.querySelectorAll('.option');
+            const selectedIndex = selectedAnswers[currentQuestion];
+            const correctIndex = question.correct;
+            
+            options.forEach((option, index) => {
+                option.classList.remove('selected', 'correct', 'incorrect');
+                if (index === correctIndex) {
+                    option.classList.add('correct');
+                } else if (index === selectedIndex && index !== correctIndex) {
+                    option.classList.add('incorrect');
+                }
+            });
+        }
+
+        function updateStatusDots() {
+            const dots = document.querySelectorAll('.status-dot');
+            dots.forEach((dot, index) => {
+                dot.classList.remove('current', 'correct', 'incorrect');
+                if (index === currentQuestion) {
+                    dot.classList.add('current');
+                } else if (selectedAnswers[index] !== null) {
+                    const question = questions[index];
+                    if (selectedAnswers[index] === question.correct) {
+                        dot.classList.add('correct');
+                    } else {
+                        dot.classList.add('incorrect');
+                    }
+                }
+            });
+        }
+
+        function updateProgress() {
+            const progress = ((currentQuestion + 1) / questions.length) * 100;
+            document.getElementById('progress-fill').style.width = progress + '%';
+        }
+
+        function updateNavigation() {
+            const prevBtn = document.getElementById('prev-btn');
+            const nextBtn = document.getElementById('next-btn');
+            const finishBtn = document.getElementById('finish-btn');
+            
+            prevBtn.disabled = currentQuestion === 0;
+            
+            if (currentQuestion === questions.length - 1) {
+                nextBtn.style.display = 'none';
+                finishBtn.style.display = 'inline-block';
+            } else {
+                nextBtn.style.display = 'inline-block';
+                finishBtn.style.display = 'none';
+            }
+        }
+
+        function prevQuestion() {
+            if (currentQuestion > 0) {
+                currentQuestion--;
+                displayQuestion();
+                updateProgress();
+                updateNavigation();
+                updateStatusDots();
+            }
+        }
+
+        function nextQuestion() {
+            if (currentQuestion < questions.length - 1) {
+                currentQuestion++;
+                displayQuestion();
+                updateProgress();
+                updateNavigation();
+                updateStatusDots();
+            }
+        }
+
+        function calculateScore() {
+            let correct = 0;
+            selectedAnswers.forEach((answer, index) => {
+                if (answer === questions[index].correct) {
+                    correct++;
+                }
+            });
+            return correct;
+        }
+
+        function getScoreMessage(score, total) {
+            const percentage = (score / total) * 100;
+            
+            if (percentage >= 90) {
+                return "¡Excelente! Tienes un conocimiento sobresaliente sobre parálisis facial. 🌟";
+            } else if (percentage >= 75) {
+                return "¡Muy bien! Demuestras un buen dominio del tema. 👏";
+            } else if (percentage >= 60) {
+                return "Bien hecho. Tienes conocimientos sólidos, pero hay margen para mejorar. 📚";
+            } else if (percentage >= 40) {
+                return "Has aprendido algunos conceptos, pero sería bueno repasar más. 💪";
+            } else {
+                return "Te recomiendo estudiar más sobre el tema y reintentar el quiz. ¡Tú puedes! 🎯";
+            }
+        }
+
+        function finishQuiz() {
+            quizCompleted = true;
+            const score = calculateScore();
+            const percentage = Math.round((score / questions.length) * 100);
+            
+            document.getElementById('quiz-container').style.display = 'none';
+            document.getElementById('results-card').style.display = 'block';
+            
+            document.getElementById('score-circle').textContent = percentage + '%';
+            document.getElementById('feedback-text').textContent = getScoreMessage(score, questions.length);
+            
+            // Add detailed results
+            const resultsCard = document.getElementById('results-card');
+            let categoryResults = {};
+            
+            // Calculate results by category
+            questions.forEach((question, index) => {
+                if (!categoryResults[question.category]) {
+                    categoryResults[question.category] = { correct: 0, total: 0 };
+                }
+                categoryResults[question.category].total++;
+                if (selectedAnswers[index] === question.correct) {
+                    categoryResults[question.category].correct++;
+                }
+            });
+            
+            let detailedResults = '<div style="margin-top: 20px; text-align: left;"><h3>Resultados por Categoría:</h3>';
+            for (let category in categoryResults) {
+                const catScore = categoryResults[category];
+                const catPercentage = Math.round((catScore.correct / catScore.total) * 100);
+                detailedResults += `<p><strong>${category}:</strong> ${catScore.correct}/${catScore.total} (${catPercentage}%)</p>`;
+            }
+            detailedResults += '</div>';
+            
+            resultsCard.innerHTML += detailedResults;
+        }
+
+        function restartQuiz() {
+            currentQuestion = 0;
+            selectedAnswers = new Array(questions.length).fill(null);
+            hintsUsed = new Array(questions.length).fill(false);
+            quizCompleted = false;
+            
+            document.getElementById('quiz-container').style.display = 'block';
+            document.getElementById('results-card').style.display = 'none';
+            
+            // Remove any added detailed results
+            const resultsCard = document.getElementById('results-card');
+            const detailedDiv = resultsCard.querySelector('div[style*="margin-top: 20px"]');
+            if (detailedDiv) {
+                detailedDiv.remove();
+            }
+            
+            initQuiz();
+        }
+
+        // Initialize quiz on page load
+        window.onload = function() {
+            initQuiz();
+        };
+    </script>
+</body>
+</html>
